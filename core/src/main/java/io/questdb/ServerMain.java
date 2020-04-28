@@ -55,6 +55,7 @@ import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class ServerMain {
+    protected PropServerConfiguration configuration;
     public ServerMain(String[] args) throws Exception {
         System.err.printf("QuestDB server %s%nCopyright (C) 2014-%d, all rights reserved.%n%n", getVersion(), Dates.getYear(System.currentTimeMillis()));
         if (args.length < 1) {
@@ -84,7 +85,7 @@ public class ServerMain {
             properties.load(is);
         }
 
-        final PropServerConfiguration configuration = new PropServerConfiguration(rootDirectory, properties);
+        configuration = new PropServerConfiguration(rootDirectory, properties);
 
         // create database directory
         try (io.questdb.std.str.Path path = new io.questdb.std.str.Path()) {
@@ -163,7 +164,7 @@ public class ServerMain {
             );
         }
 
-        startQuestDb(workerPool, lineProtocolReceiver, log);
+        startQuestDb(workerPool, cairoEngine, lineProtocolReceiver, log);
 
         if (Os.type != Os.WINDOWS && optHash.get("-n") == null) {
             // suppress HUP signal
@@ -381,6 +382,7 @@ public class ServerMain {
 
     protected void startQuestDb(
             final WorkerPool workerPool,
+            final CairoEngine cairoEngine,
             final AbstractLineProtoReceiver lineProtocolReceiver,
             final Log log
     ) {
